@@ -14,8 +14,7 @@ const RegisterPage = () => {
       alert("Please fill in all fields");
       return;
     }
-    const API = "http://localhost:8000/register";
-    console.log(username, email, password);
+    const API = "https://triohotel.onrender.com/api/register";
     try {
       const res = await fetch(API, {
         method: "POST",
@@ -24,6 +23,7 @@ const RegisterPage = () => {
         },
         body: JSON.stringify({ username, email, password }),
       });
+      console.log(username, email, password);
 
       if (res.ok) {
         setUsername("");

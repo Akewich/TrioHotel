@@ -23,7 +23,7 @@ function Profilepage() {
           <p className="mb-2">
             This is your username:{" "}
             <span className="text-emerald-500">
-              {session.user.name || "No name provided"}
+              {session.user.username || "No name provided"}
             </span>
           </p>
           <p className="mb-4">

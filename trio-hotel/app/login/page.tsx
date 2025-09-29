@@ -26,7 +26,7 @@ const LoginPage = () => {
         password,
       });
       if (result?.error) {
-        setError("Invalid email or password");
+        console.log("Invalid email or password");
       } else {
         // Login successful, redirect to profile page
         Router.push("/profile");

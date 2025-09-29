@@ -38,18 +38,23 @@ export const authOptions: NextAuthOptions = {
           console.log("Backend response:", data);
 
           // Check if login was successful
-          if (!data.success) {
-            console.error("Login unsuccessful:", data.message);
+          if (!data.customer || !data.token) {
+            console.error("Login unsuccessful");
             return null;
           }
 
           // Extract user data from the response
           // Your backend returns: { success, message, token, user: { id, username, email } }
           return {
-            id: data.id || "", // ถ้า backend ไม่มี id ให้ fallback
-            email: data.email || credentials.email,
-            username: data.username || "",
-            accessToken: data.token || "",
+            // id: data.id || "", // ถ้า backend ไม่มี id ให้ fallback
+            // email: data.email || credentials.email,
+            // username: data.username || "",
+            // accessToken: data.token || "",
+            id: data.customer.id,
+            name: data.customer.name, // 👈 ใส่ name ตรงนี้
+            email: data.customer.email,
+            username: data.customer.username,
+            accessToken: data.token,
           };
         } catch (error) {
           console.error("Login error:", error);
@@ -62,13 +67,16 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        // token.id = user.id;
+        // token.email = user.email;
+        // token.username = user.username;
+        // token.accessToken = user.accessToken;
+        // token.name = user.username;
         token.id = user.id;
+        token.name = user.name; // ✅ ใส่ name
         token.email = user.email;
         token.username = user.username;
         token.accessToken = user.accessToken;
-
-        // map username -> name เพื่อ NextAuth UI ใช้ได้
-        token.name = user.username;
       }
       return token;
     },
@@ -76,11 +84,11 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name = token.name as string; // ✅ map กลับไป
         session.user.email = token.email as string;
         session.user.username = token.username as string;
-        session.user.name = token.name as string;
-        session.accessToken = token.accessToken as string;
       }
+      (session as any).accessToken = token.accessToken as string;
       return session;
     },
   },
