@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 import React, { useEffect } from "react";
 
-function Profilepage() {
+function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   useEffect(() => {
@@ -42,4 +42,4 @@ function Profilepage() {
   );
 }
 
-export default Profilepage;
+export default ProfilePage;
