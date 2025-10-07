@@ -3,6 +3,8 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
+import logo from "../public/images/Logo.png";
+import Image from "next/image";
 
 const links = [
   { name: "home", path: "/" },
@@ -13,7 +15,7 @@ const links = [
 
 const authLinks = [
   { name: "login", path: "/login" },
-  { name: "register", path: "/register" },
+  // { name: "register", path: "/register" },
 ];
 
 const Navbar = () => {
@@ -48,9 +50,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         {/* Left: Logo */}
         <Link href="/">
-          <h1 className="text-2xl font-semibold">
-            Trio Hotel<span className="text-green-600">.</span>
-          </h1>
+          <Image src={logo} alt="Sunset Lagoon" width={50} height={50} />
         </Link>
 
         {/* Center: Main links */}
@@ -64,12 +64,13 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 href={link.path}
-                className={`capitalize font-medium hover:text-green-400 transition-all ${
-                  pathname === link.path ||
-                  (link.path === "/rooms" && pathname.startsWith("/rooms/"))
-                    ? "text-emerald-400 border-b-2 border-emerald-400"
-                    : ""
-                }`}
+                className={`capitalize font-medium px-4 py-2 rounded-xl transition-all duration-300 ease-in-out
+    ${
+      pathname === link.path ||
+      (link.path === "/rooms" && pathname.startsWith("/rooms/"))
+        ? "text-white bg-[#AD8054] border border-[#AD8054] shadow-md hover:bg-[#c99666]"
+        : "text-[#AD8054] border border-transparent hover:text-[#d4883c] hover:border-[#d4883c] hover:bg-[#f9f3ef]"
+    }`}
               >
                 {link.name}
               </Link>
@@ -88,10 +89,10 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 href={link.path}
-                className={`capitalize font-medium hover:text-green-400 transition-all ${
+                className={`capitalize font-medium px-4 py-2 hover:text-[#AD8054] transition-all duration-300 ease-in-out  ${
                   pathname === link.path
-                    ? "text-emerald-400 border-b-2 border-emerald-400"
-                    : ""
+                    ? "text-[#AD8054] border-b-2 border-[#AD8054] hover:text-[#d4883c] hover:border-[#d4883c]"
+                    : "text-[#AD8054] border border-transparent rounded-xl hover:text-[#d4883c] hover:border-[#d4883c] hover:bg-[#f9f3ef]"
                 }`}
               >
                 {link.name}
