@@ -25,9 +25,7 @@ export default async function RootLayout({
         <SessionProvider session={session}>
           <Navbar />
           {/* This wrapper applies ONLY to pages that need it */}
-          <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {children}
-          </main>
+          {children}
         </SessionProvider>
       </body>
     </html>

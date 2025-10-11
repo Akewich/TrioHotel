@@ -10,7 +10,13 @@ function HomePage() {
     setIsVisible(true);
   }, []);
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
+    <main
+      className="relative min-h-screen flex items-center justify-center px-4 bg-cover bg-center bg-fixed"
+      // *** THIS IS THE CORRECTED LINE ***
+      style={{ backgroundImage: "url('/images/background.jpg')" }}
+    >
+      {/* Semi-transparent overlay */}
+
       {/* Animated Background Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div
@@ -68,7 +74,16 @@ function HomePage() {
           </span>
         </p>
 
-        <div className="mt-10 flex justify-center">
+        <div
+          className={`
+            mt-12 transition-all duration-1000 delay-500
+            ${
+              isVisible
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-10"
+            }
+          `}
+        >
           <SearchBox />
         </div>
       </div>

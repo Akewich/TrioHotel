@@ -2,14 +2,15 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../public/images/Logo.png";
 import Image from "next/image";
 
 const links = [
   { name: "home", path: "/" },
-  { name: "rooms", path: "/showrooms" },
+  // { name: "rooms", path: "/showrooms" },
   { name: "promotions", path: "/promotion" },
+  { name: "contact", path: "/contact" },
   { name: "profile", path: "/profile" },
 ];
 
@@ -22,31 +23,30 @@ const Navbar = () => {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
+  const [scrolled, setScrolled] = useState(false);
+  const isHomePage = pathname === "/";
   // Function to check if current path is a protected route
-  const isProtectedRoute = (path: any) => {
-    // Protected routes - only accessible when authenticated
-    const protectedRoutes = [
-      "/profile",
-      "/profile/", // Handle trailing slash
-      "/rooms/", // This will match /rooms/anything
-    ];
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    return protectedRoutes.some(
-      (route) => path === route || path.startsWith(route)
-    );
-  };
-
-  // Function to check if current path is an auth route
-  const isAuthRoute = (path: any) => {
-    const authRoutes = ["/login", "/register"];
-    return authRoutes.includes(path);
-  };
-
-  // Don't handle redirects in Navbar - handle them in individual pages instead
+  const isTransparentNavbar = isHomePage && !scrolled;
+  const headerClasses = `
+    fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out py-4
+    ${
+      isTransparentNavbar
+        ? "bg-transparent"
+        : "bg-[#FFF6E2] backdrop-blur-sm shadow-sm"
+    }
+  `;
   // This prevents conflicts with dynamic routes like /rooms/[id]
 
   return (
-    <header className="py-8 xl:py-12">
+    <header className={headerClasses}>
       <div className="container mx-auto flex items-center justify-between">
         {/* Left: Logo */}
         <Link href="/">
@@ -101,8 +101,8 @@ const Navbar = () => {
           </div>
         ) : status === "authenticated" && session ? (
           <div className="flex items-center gap-2">
-            <span className="capitalize text-emerald-400 font-medium">
-              Welcome,{" "}
+            <p className="text-[#AD8054] ">Hi, </p>
+            <span className="capitalize text-[#AD8054] font-extrabold">
               {session.user?.name ||
                 session.user?.email?.split("@")[0] ||
                 "User"}

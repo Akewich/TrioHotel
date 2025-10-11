@@ -92,7 +92,7 @@ export default function ShowRoomPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-12">
+      <div className="container mx-auto py-12 ">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
         </div>
@@ -121,7 +121,7 @@ export default function ShowRoomPage() {
   }
 
   return (
-    <div className="container mx-auto py-12">
+    <div className="container mx-auto px-4 py-8 pt-28">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-center mb-4">All Rooms</h1>
         <p className="text-gray-600 text-center max-w-2xl mx-auto">
