@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
             // username: data.username || "",
             // accessToken: data.token || "",
             id: data.customer.id,
-            name: data.customer.name, // 👈 ใส่ name ตรงนี้
+            name: data.customer.name,
             email: data.customer.email,
             username: data.customer.username,
             accessToken: data.token,
@@ -73,7 +73,7 @@ export const authOptions: NextAuthOptions = {
         // token.accessToken = user.accessToken;
         // token.name = user.username;
         token.id = user.id;
-        token.name = user.name; // ✅ ใส่ name
+        token.name = user.name;
         token.email = user.email;
         token.username = user.username;
         token.accessToken = user.accessToken;
@@ -84,7 +84,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.name = token.name as string; // ✅ map กลับไป
+        session.user.name = token.name as string;
         session.user.email = token.email as string;
         session.user.username = token.username as string;
       }

@@ -1,27 +1,23 @@
 "use client";
-import { useRouter } from "next/navigation";
+
 import { useEffect, useState } from "react";
-import { Room } from "@/types/rooms";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Room } from "@/types/rooms"; // Make sure this type matches your API
+import SearchBox from "@/components/SearchBox";
 
 export default function ShowRoomPage() {
   const router = useRouter();
-  const [rooms, setRooms] = useState<Room[]>([]); // Array of rooms
+  const searchParams = useSearchParams();
+
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleViewRoom = (room: Room) => {
-    const params = new URLSearchParams({
-      roomNumber: room.roomNumber,
-      roomType: room.roomType,
-      price: room.price.toString(),
-      status: room.status,
-      updatedAt: room.updatedAt,
-    });
+  // Get search criteria from URL
+  const roomTypeParam = searchParams.get("roomType");
 
-    // Navigate to rooms/[id] WITH search parameters
-    router.push(`/rooms/${room._id}?${params.toString()}`);
-  };
-
+  // Fetch all rooms once
   const fetchRooms = async () => {
     try {
       setLoading(true);
@@ -41,9 +37,12 @@ export default function ShowRoomPage() {
         );
       }
 
-      // This is the CORRECT way to handle the response
       const data = await response.json();
-      setRooms(data); // Set the array directly
+      if (Array.isArray(data)) {
+        setRooms(data);
+      } else {
+        throw new Error("Invalid API response: expected an array");
+      }
     } catch (err) {
       console.error("Error fetching rooms:", err);
       setError(
@@ -54,23 +53,45 @@ export default function ShowRoomPage() {
     }
   };
 
+  // Filter rooms whenever rooms or roomTypeParam changes
+  useEffect(() => {
+    if (rooms.length === 0) return;
+
+    let result = rooms;
+
+    // Filter by room type if provided
+    if (roomTypeParam) {
+      result = result.filter((room) => room.roomType === roomTypeParam);
+    }
+
+    // Only show available rooms
+    result = result.filter((room) => room.status === "available");
+
+    setFilteredRooms(result);
+  }, [rooms, roomTypeParam]);
+
+  // Fetch rooms on mount
   useEffect(() => {
     fetchRooms();
   }, []);
 
-  const getStatusColor = (status: Room["status"]) => {
-    switch (status) {
-      case "available":
-        return "bg-green-100 text-green-800";
-      case "reserved":
-        return "bg-yellow-100 text-yellow-800";
-      case "occupied":
-        return "bg-red-100 text-red-800";
-      case "maintenance":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const handleViewRoom = (room: Room) => {
+    const params = new URLSearchParams({
+      roomNumber: room.roomNumber,
+      roomType: room.roomType,
+      price: room.price.toString(),
+      status: room.status,
+      updatedAt: room.updatedAt,
+    });
+
+    // Navigate to rooms/[id] WITH search parameters
+    router.push(`/rooms/${room._id}?${params.toString()}`);
+  };
+  const getStatusColor = (status: string) => {
+    // Only "available" should appear, but keep for safety
+    return status === "available"
+      ? "bg-green-100 text-green-800"
+      : "bg-gray-100 text-gray-800";
   };
 
   const formatPrice = (price: number) => {
@@ -90,11 +111,25 @@ export default function ShowRoomPage() {
     });
   };
 
+  const getTitle = () => {
+    if (roomTypeParam) {
+      return `${roomTypeParam.replace(/_/g, " ")} Rooms`;
+    }
+    return "Available Rooms";
+  };
+
+  const getDescription = () => {
+    if (roomTypeParam) {
+      return `Browse available ${roomTypeParam.replace(/_/g, " ")} rooms`;
+    }
+    return "Browse all available rooms ready for booking";
+  };
+
   if (loading) {
     return (
-      <div className="container mx-auto py-12 ">
+      <div className="container mx-auto py-12 px-4">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
         </div>
       </div>
     );
@@ -102,16 +137,12 @@ export default function ShowRoomPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-12">
-        <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
-          role="alert"
-        >
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
+      <div className="container mx-auto py-12 px-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 p-4 rounded">
+          <strong>Error:</strong> {error}
           <button
             onClick={fetchRooms}
-            className="mt-2 bg-red-500 hover:bg-red-700 text-white py-1 px-3 rounded text-sm"
+            className="ml-4 bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
           >
             Retry
           </button>
@@ -122,29 +153,62 @@ export default function ShowRoomPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 pt-28">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-center mb-4">All Rooms</h1>
-        <p className="text-gray-600 text-center max-w-2xl mx-auto">
-          Browse our complete room inventory with real-time availability
-        </p>
+      <SearchBox />
+      <div className="my-10 text-center">
+        <h1 className="text-4xl font-bold mb-4">{getTitle()}</h1>
+        <p className="text-gray-600 max-w-2xl mx-auto">{getDescription()}</p>
+
+        {/* Clear filters button */}
+        {roomTypeParam && (
+          <button
+            onClick={() => router.push("/showrooms")}
+            className="mt-4 text-amber-600 hover:text-amber-800 font-medium text-sm flex items-center gap-1 mx-auto"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Clear filters
+          </button>
+        )}
       </div>
 
-      {rooms.length === 0 ? (
+      {filteredRooms.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No rooms found in the system.</p>
+          <p className="text-gray-500">
+            {roomTypeParam
+              ? `No available ${roomTypeParam.replace(/_/g, " ")} rooms found.`
+              : "No available rooms at the moment."}
+          </p>
+          <button
+            onClick={() => router.push("/showrooms")}
+            className="mt-4 text-amber-600 hover:text-amber-800 font-medium"
+          >
+            View all room types
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {rooms.map((room) => (
+          {filteredRooms.map((room) => (
             <div
               key={room._id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border"
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-100"
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">
-                      {room.roomType}
+                      {room.roomType.replace(/_/g, " ")}
                     </h3>
                     <p className="text-gray-600 font-medium">
                       Room #{room.roomNumber}
@@ -162,7 +226,7 @@ export default function ShowRoomPage() {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Price:</span>
-                    <span className="font-semibold text-emerald-600">
+                    <span className="font-semibold text-amber-600">
                       {formatPrice(room.price)}
                     </span>
                   </div>
@@ -175,23 +239,12 @@ export default function ShowRoomPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleViewRoom(room)} // Pass the room object
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 px-4 rounded-lg transition-colors duration-200 text-sm font-medium"
-                    disabled={room.status !== "available"}
-                  >
-                    {room.status === "available"
-                      ? "View Details"
-                      : "Not Available"}
-                  </button>
-
-                  {room.status === "available" && (
-                    <button className="flex-1 border border-emerald-500 text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600 py-2 px-4 rounded-lg transition-colors duration-200 text-sm font-medium">
-                      Book Now
-                    </button>
-                  )}
-                </div>
+                <button
+                  onClick={() => handleViewRoom(room)}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-lg transition-colors duration-200 text-sm font-medium"
+                >
+                  View Details
+                </button>
               </div>
             </div>
           ))}

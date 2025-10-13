@@ -83,7 +83,7 @@ export default function RoomDetailPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-12">
+      <div className="container mx-auto py-12 m-30">
         <div
           className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
           role="alert"
@@ -118,7 +118,7 @@ export default function RoomDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-12">
+    <div className="container mx-auto py-12 m-30">
       <button
         onClick={() => router.push("/showrooms")}
         className="mb-6 text-emerald-600 hover:text-emerald-800 flex items-center gap-2"

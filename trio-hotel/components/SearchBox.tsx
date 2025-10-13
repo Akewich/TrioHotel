@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { House, Calendar, Search, Users } from "@deemlol/next-icons"; // 👈 เพิ่ม Users
+import { House, Calendar, Search, Users } from "@deemlol/next-icons";
 // @ts-ignore
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
+import { useRouter } from "next/navigation";
 
 type DateRangeType = {
   startDate: Date | undefined;
@@ -16,10 +17,11 @@ type DateRangeType = {
 type GuestsType = {
   adults: number;
   children: number;
+  room: number;
 };
 
 const SearchBox = () => {
-  const [roomType, setRoomType] = useState<string>("minimal_villa");
+  const [roomType, setRoomType] = useState<string>("Standard");
   const [dateRange, setDateRange] = useState<DateRangeType>({
     startDate: undefined,
     endDate: undefined,
@@ -28,14 +30,19 @@ const SearchBox = () => {
   const [guests, setGuests] = useState<GuestsType>({
     adults: 2,
     children: 0,
+    room: 1,
   });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isGuestsOpen, setIsGuestsOpen] = useState(false);
 
+  // for Guest reservation
   const calendarRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
   const guestsButtonRef = useRef<HTMLDivElement>(null);
+
+  // routing
+  const router = useRouter();
 
   // Close calendar on outside click
   useEffect(() => {
@@ -71,10 +78,28 @@ const SearchBox = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // error checking
     if (!dateRange.startDate || !dateRange.endDate) {
       alert("Please select both dates.");
       return;
     }
+
+    if (guests.adults === 0) {
+      alert("At least one adult for booking.");
+      return;
+    }
+
+    const params = new URLSearchParams({
+      roomType,
+      checkIn: dateRange.startDate.toISOString(),
+      checkOut: dateRange.endDate.toISOString(),
+      adults: guests.adults.toString(),
+      children: guests.children.toString(),
+      room: guests.room.toString(),
+    });
+    router.push(`/showrooms?${params.toString()}`);
+
     console.log({ roomType, dateRange, guests });
   };
 
@@ -94,15 +119,21 @@ const SearchBox = () => {
   };
 
   const getGuestsDisplayText = () => {
-    const total = guests.adults + guests.children;
-    return `${total} guest${total !== 1 ? "s" : ""}`;
+    const totalGuest = guests.adults + guests.children;
+    return (
+      `${totalGuest} Guest${totalGuest !== 1 ? "s" : ""} , ` +
+      `${guests.room} Room${guests.room !== 1 ? "s" : ""}`
+    );
   };
 
   const handleRangeChange = (item: any) => {
     setDateRange(item.selection);
   };
 
-  const updateGuests = (type: "adults" | "children", delta: number) => {
+  const updateGuests = (
+    type: "adults" | "children" | "room",
+    delta: number
+  ) => {
     setGuests((prev) => {
       const newValue = prev[type] + delta;
       if (newValue < 0) return prev;
@@ -127,11 +158,13 @@ const SearchBox = () => {
             onChange={(e) => setRoomType(e.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white/90 appearance-none focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all"
           >
-            <option value="minimal_villa">Minimal Villa</option>
-            <option value="deluxe_suite">Deluxe Suite</option>
-            <option value="family_room">Family Room</option>
-            <option value="penthouse">Penthouse</option>
+            <option value="Standard">Standard</option>
+            <option value="Family">Family</option>
+            <option value="Deluxe">Deluxe</option>
+            <option value="Suite">Suite</option>
+            <option value="Honeymoon">Honeymoon</option>
           </select>
+
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600">
             <House size={18} />
           </div>
@@ -213,7 +246,7 @@ const SearchBox = () => {
       </div>
 
       {/* Guests */}
-      <div className="flex-1 min-w-[180px]">
+      <div className="flex-1 min-w-[240px]">
         <label className="block text-sm font-semibold text-gray-800 mb-2">
           Guests
         </label>
@@ -251,6 +284,31 @@ const SearchBox = () => {
             style={{ top: "100%" }}
           >
             <div className="space-y-4">
+              {/* Room */}
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700">Room</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateGuests("room", -1)}
+                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                    disabled={guests.room <= 1}
+                  >
+                    -
+                  </button>
+                  <span className="w-8 text-center font-medium">
+                    {guests.room}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => updateGuests("room", 1)}
+                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
               {/* Adults */}
               <div className="flex items-center justify-between">
                 <span className="font-medium text-gray-700">Adults</span>

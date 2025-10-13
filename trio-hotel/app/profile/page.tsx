@@ -17,7 +17,7 @@ function ProfilePage() {
   return (
     status === "authenticated" &&
     session && (
-      <div>
+      <div className="m-30">
         <h1 className="text-2xl font-bold mb-4">Profile Page</h1>
         <div className="bg-white p-5 rounded-2xl shadow-lg">
           <p className="mb-2">

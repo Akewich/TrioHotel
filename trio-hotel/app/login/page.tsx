@@ -55,7 +55,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-full md:flex border border-gray-200 rounded-lg shadow p-6">
+    <div className="min-w-screen md:flex border border-gray-200 rounded-lg shadow p-6 pt-30">
       {/* Left side – Picture */}
       <div className="hidden md:flex md:w-1/2 bg-gray-200">
         <img
