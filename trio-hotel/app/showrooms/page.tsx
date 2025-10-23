@@ -75,6 +75,18 @@ export default function ShowRoomPage() {
     fetchRooms();
   }, []);
 
+  const checkIn = searchParams.get("checkIn") || "";
+  const checkOut = searchParams.get("checkOut") || "";
+  const adults = searchParams.get("adults") || "1";
+  const children = searchParams.get("children") || "0";
+  const roomCount = searchParams.get("room") || "1";
+  useEffect(() => {
+    console.log("Room Type:", roomTypeParam);
+    console.log("Check-in:", checkIn);
+    console.log("Adults:", adults);
+    console.log("Check-out:", checkOut);
+  }, [roomTypeParam, checkIn, checkOut, adults]);
+
   const handleViewRoom = (room: Room) => {
     const params = new URLSearchParams({
       roomNumber: room.roomNumber,
@@ -82,7 +94,13 @@ export default function ShowRoomPage() {
       price: room.price.toString(),
       status: room.status,
       updatedAt: room.updatedAt,
+      checkIn,
+      checkOut,
+      adults,
+      children,
+      room: roomCount,
     });
+    console.log("Viewing room with params:", params);
 
     // Navigate to rooms/[id] WITH search parameters
     router.push(`/rooms/${room._id}?${params.toString()}`);
@@ -153,7 +171,8 @@ export default function ShowRoomPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 pt-28">
-      <SearchBox />
+      <SearchBox isHomepage={false} />
+
       <div className="my-10 text-center">
         <h1 className="text-4xl font-bold mb-4">{getTitle()}</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">{getDescription()}</p>

@@ -8,8 +8,8 @@ import Image from "next/image";
 
 const links = [
   { name: "home", path: "/" },
-  // { name: "rooms", path: "/showrooms" },
-  { name: "promotions", path: "/promotion" },
+  { name: "rooms", path: "/showrooms" },
+  // { name: "promotions", path: "/promotion" },
   { name: "contact", path: "/contact" },
   { name: "profile", path: "/profile" },
 ];

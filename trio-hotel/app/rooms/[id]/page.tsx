@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Room } from "@/types/rooms";
+import Swal from "sweetalert2";
 
 // Icons
 import { GiForkKnifeSpoon } from "react-icons/gi";
@@ -19,6 +20,8 @@ import { MdTableRestaurant } from "react-icons/md";
 import { RiSafe3Line } from "react-icons/ri";
 import { FaGlassCheers } from "react-icons/fa";
 import { MdOutlineBathtub } from "react-icons/md";
+import { useSession } from "next-auth/react";
+import BookingConfirmedModal from "@/components/BookingModal";
 
 // Room descriptions
 const ROOM_DESCRIPTIONS: Record<string, string> = {
@@ -366,8 +369,18 @@ const getRoomImages = (roomType: string): string[] => {
 export default function RoomDetailPage() {
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+  const [modalView, setModalView] = useState<"summary" | "success">("summary");
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { data: session, status } = useSession();
+  // const checkIn = searchParams.get("checkIn");
+  // const checkOut = searchParams.get("checkOut");
+  // const adults = searchParams.get("adults");
+  // const children = searchParams.get("children");
+  // const roomCount = searchParams.get("room");
 
   useEffect(() => {
     const roomNumber = searchParams.get("roomNumber");
@@ -375,6 +388,11 @@ export default function RoomDetailPage() {
     const price = searchParams.get("price");
     const status = searchParams.get("status");
     const updatedAt = searchParams.get("updatedAt");
+    const checkIn = searchParams.get("checkIn");
+    const checkOut = searchParams.get("checkOut");
+    const adults = searchParams.get("adults");
+    const children = searchParams.get("children");
+    const roomCount = searchParams.get("room");
 
     if (roomNumber && roomType && price && status && updatedAt) {
       const id = window.location.pathname.split("/").pop() || "";
@@ -385,6 +403,11 @@ export default function RoomDetailPage() {
         price: parseInt(price),
         status: status as Room["status"],
         updatedAt,
+        checkIn: checkIn ? new Date(checkIn).toISOString() : undefined,
+        checkOut: checkOut ? new Date(checkOut).toISOString() : undefined,
+        adults: adults ? parseInt(adults) : undefined,
+        children: children ? parseInt(children) : undefined,
+        roomCount: roomCount ? parseInt(roomCount) : undefined,
       });
     }
     setLoading(false);
@@ -412,6 +435,27 @@ export default function RoomDetailPage() {
       default:
         return `${base} text-gray-600 bg-gray-50 border-gray-600`;
     }
+  };
+  const canBook = (): boolean => {
+    if (!room) return false;
+    if (room.status !== "available") return false;
+    if (!room.checkIn || !room.checkOut) return false;
+    if (!room.adults || room.adults < 1) return false;
+    return true;
+  };
+
+  const handleBooking = () => {
+    if (!canBook()) {
+      Swal.fire({
+        title: "Incomplete Info",
+        text: "Please select check-in/check-out dates and at least 1 adult.",
+        icon: "warning",
+        confirmButtonColor: "#AD8054",
+      });
+      return;
+    }
+    setIsModalOpen(true);
+    setModalView("summary");
   };
 
   // Fallback image handler
@@ -452,7 +496,7 @@ export default function RoomDetailPage() {
       <div className="container mx-auto py-12 px-4 md:px-6 pt-[120px]">
         {/* Back button */}
         <button
-          onClick={() => router.push("/showrooms")}
+          onClick={() => router.back()}
           className="mb-6 text-emerald-600 hover:text-emerald-800 flex items-center gap-2"
         >
           ← Back to All Rooms
@@ -482,9 +526,352 @@ export default function RoomDetailPage() {
             </div>
 
             {/* Booking Button */}
+            {/* {isModalOpen && (
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => setIsModalOpen(false)}
+              >
+                <div
+                  className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative"
+                  onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                > */}
+            {/* Close button */}
+            {/* <button
+                    // onClick={() => setIsModalOpen(false)}
+                    onClick={handleBooking}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button> */}
+
+            {/* Modal Header
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Confirm Booking
+                    </h2>
+                    <p className="text-gray-600 mt-2">
+                      {room?.roomType} Room #{room?.roomNumber}
+                    </p>
+                  </div> */}
+
+            {/* Booking Summary
+                  <div className="space-y-4 mb-6">
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-gray-600">Check-in:</span>
+                      <span className="font-medium">
+                        {room && room.checkIn
+                          ? new Date(room.checkIn).toLocaleDateString()
+                          : "Not selected"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-gray-600">Check-out:</span>
+                      <span className="font-medium">
+                        {room && room.checkOut
+                          ? new Date(room.checkOut).toLocaleDateString()
+                          : "Not selected"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-gray-600">Guests:</span>
+                      <span className="font-medium">
+                        {room.adults ? `${room.adults} adults` : ""}
+                        {room.children && room.adults ? ", " : ""}
+                        {room.children ? `${room.children} children` : ""}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-gray-600">Price:</span>
+                      <span className="font-bold text-lg text-[#AD8054]">
+                        {room ? formatPrice(room.price) : ""} / night
+                      </span>
+                    </div>
+                  </div> */}
+
+            {/* Action Buttons */}
+            {/* <div className="flex gap-3">
+                    <button
+                      onClick={() => setIsModalOpen(false)}
+                      className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleBooking}
+                      disabled={isBooking}
+                      className="flex-1 py-3 px-4 bg-[#AD8054] hover:bg-[#ddbc9b] text-white rounded-xl font-medium transition-colors disabled:opacity-70 flex items-center justify-center"
+                    >
+                      {isBooking ? (
+                        <>
+                          <svg
+                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Booking...
+                        </>
+                      ) : (
+                        "Confirm Booking"
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )} */}
+            {isModalOpen && (
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setModalView("summary"); // reset when closed
+                }}
+              >
+                <div
+                  className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-fade-in-up"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close button */}
+                  <button
+                    onClick={() => {
+                      setIsModalOpen(false);
+                      setModalView("summary");
+                    }}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* === SUMMARY VIEW === */}
+                  {modalView === "summary" && room && (
+                    <>
+                      <div className="text-center mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900">
+                          Confirm Booking
+                        </h2>
+                        <p className="text-gray-600 mt-2">
+                          {room.roomType} Room #{room.roomNumber}
+                        </p>
+                      </div>
+
+                      <div className="space-y-4 mb-6">
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-gray-600">Check-in:</span>
+                          <span className="font-medium">
+                            {room.checkIn
+                              ? new Date(room.checkIn).toLocaleDateString()
+                              : "Not selected"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-gray-600">Check-out:</span>
+                          <span className="font-medium">
+                            {room.checkOut
+                              ? new Date(room.checkOut).toLocaleDateString()
+                              : "Not selected"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-gray-600">Guests:</span>
+                          <span className="font-medium">
+                            {room.adults ? `${room.adults} adults` : ""}
+                            {room.children && room.adults ? ", " : ""}
+                            {room.children ? `${room.children} children` : ""}
+                          </span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b">
+                          <span className="text-gray-600">Price:</span>
+                          <span className="font-bold text-lg text-[#AD8054]">
+                            {formatPrice(room.price)} / night
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setIsModalOpen(false)}
+                          className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setIsBooking(true);
+                            try {
+                              // Simulate API call
+                              await new Promise((resolve) =>
+                                setTimeout(resolve, 2000)
+                              );
+                              setModalView("success"); // ✅ Switch to success view
+                            } catch (error) {
+                              Swal.fire({
+                                title: "Booking Failed",
+                                text: "Please try again.",
+                                icon: "error",
+                                confirmButtonColor: "#AD8054",
+                              });
+                            } finally {
+                              setIsBooking(false);
+                            }
+                          }}
+                          disabled={isBooking}
+                          className="flex-1 py-3 px-4 bg-[#AD8054] hover:bg-[#ddbc9b] text-white rounded-xl font-medium disabled:opacity-70 flex items-center justify-center"
+                        >
+                          {isBooking ? (
+                            <>
+                              <svg
+                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              Booking...
+                            </>
+                          ) : (
+                            "Confirm Booking"
+                          )}
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* === SUCCESS VIEW === */}
+                  {modalView === "success" && room && (
+                    <>
+                      {/* Success Icon */}
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6 text-green-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12l2 2 4-4m6 6v-8a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2z"
+                          />
+                        </svg>
+                      </div>
+
+                      <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">
+                        Booking Confirmed!
+                      </h1>
+                      <p className="text-gray-600 text-center mb-6">
+                        Your stay has been successfully booked!
+                      </p>
+
+                      <div className="space-y-3 mb-6 text-left">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Room:</span>
+                          <span className="font-medium">
+                            {room.roomType} #{room.roomNumber}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Guests:</span>
+                          <span className="font-medium">
+                            {room.adults} adult{room.adults !== 1 ? "s" : ""}
+                            {room.children
+                              ? `, ${room.children} child${
+                                  room.children !== 1 ? "ren" : ""
+                                }`
+                              : ""}
+                          </span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-gray-200">
+                          <span className="text-gray-600">Total Paid:</span>
+                          <span className="font-bold text-lg">
+                            {formatPrice(room.price)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => {
+                            setIsModalOpen(false);
+                            router.push("/my-bookings");
+                          }}
+                          className="flex-1 py-2 px-4 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100"
+                        >
+                          View Booking
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsModalOpen(false);
+                            router.push("/showrooms");
+                          }}
+                          className="flex-1 py-2 px-4 bg-[#AD8054] hover:bg-[#ddbc9b] text-white rounded-xl font-medium"
+                        >
+                          Explore More
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               {room.status === "available" ? (
-                <button className="bg-[#AD8054] hover:bg-[#ddbc9b] text-white py-3 px-8 rounded-full transition-colors duration-200 font-medium w-full sm:w-auto">
+                <button
+                  onClick={handleBooking}
+                  className="bg-[#AD8054] hover:bg-[#ddbc9b] text-white py-3 px-8 rounded-full transition-colors duration-200 font-medium w-full sm:w-auto"
+                >
                   Book Now
                 </button>
               ) : (

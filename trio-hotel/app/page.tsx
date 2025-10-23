@@ -84,7 +84,7 @@ function HomePage() {
             }
           `}
         >
-          <SearchBox />
+          <SearchBox isHomepage={true} />
         </div>
       </div>
     </main>

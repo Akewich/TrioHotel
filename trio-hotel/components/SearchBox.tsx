@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, CSSProperties } from "react";
 import { House, Calendar, Search, Users } from "@deemlol/next-icons";
 // @ts-ignore
 import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type DateRangeType = {
   startDate: Date | undefined;
@@ -20,7 +20,7 @@ type GuestsType = {
   room: number;
 };
 
-const SearchBox = () => {
+const SearchBox = ({ isHomepage = false }: { isHomepage?: boolean }) => {
   const [roomType, setRoomType] = useState<string>("Standard");
   const [dateRange, setDateRange] = useState<DateRangeType>({
     startDate: undefined,
@@ -43,6 +43,31 @@ const SearchBox = () => {
 
   // routing
   const router = useRouter();
+
+  const getCalendarStyle = (): CSSProperties => {
+    if (isHomepage) {
+      return {
+        position: "fixed" as const,
+        top: "-100%",
+        left: "10%",
+        width: "75%",
+        maxHeight: "90vh",
+        overflowY: "auto",
+        zIndex: 50,
+      };
+    } else {
+      return {
+        position: "fixed",
+        top: "120px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "90vw",
+        maxWidth: "600px",
+        maxHeight: "calc(100vh - 160px)",
+        zIndex: 50,
+      };
+    }
+  };
 
   // Close calendar on outside click
   useEffect(() => {
@@ -98,9 +123,8 @@ const SearchBox = () => {
       children: guests.children.toString(),
       room: guests.room.toString(),
     });
+    console.log(params);
     router.push(`/showrooms?${params.toString()}`);
-
-    console.log({ roomType, dateRange, guests });
   };
 
   const getDisplayText = () => {
@@ -141,6 +165,35 @@ const SearchBox = () => {
       return { ...prev, [type]: newValue };
     });
   };
+
+  // Populate state from URL parameters on mount
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const urlroomType = searchParams.get("roomType");
+    if (urlroomType) {
+      setRoomType(urlroomType);
+    }
+
+    const urlCheckIn = searchParams.get("checkIn");
+    const urlCheckOut = searchParams.get("checkOut");
+    if (urlCheckIn && urlCheckOut) {
+      setDateRange({
+        startDate: new Date(urlCheckIn),
+        endDate: new Date(urlCheckOut),
+        key: "selection",
+      });
+    }
+
+    const urlAdults = searchParams.get("adults");
+    const urlChildren = searchParams.get("children");
+    const urlRoom = searchParams.get("room");
+    setGuests({
+      adults: urlAdults ? parseInt(urlAdults) : 2,
+      children: urlChildren ? parseInt(urlChildren) : 0,
+      room: urlRoom ? parseInt(urlRoom) : 1,
+    });
+  }, [searchParams]);
 
   return (
     <form
@@ -206,15 +259,8 @@ const SearchBox = () => {
         {isCalendarOpen && (
           <div
             ref={calendarRef}
-            className="fixed z-50 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl border border-gray-200"
-            style={{
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              maxHeight: "90vh",
-              width: "90vw",
-              maxWidth: "600px",
-            }}
+            className="bg-white rounded-2xl shadow-xl border border-gray-200"
+            style={getCalendarStyle()}
           >
             <div
               className="overflow-y-auto p-4"

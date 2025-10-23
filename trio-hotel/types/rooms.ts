@@ -8,6 +8,11 @@ export interface Room {
   price: number;
   status: "available" | "reserved" | "occupied" | "maintenance";
   updatedAt: string;
+  checkIn?: string;
+  checkOut?: string;
+  adults?: number;
+  children?: number;
+  roomCount?: number;
 }
 
 // Extended interface for room details (if your detail endpoint returns more data)
