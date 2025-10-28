@@ -2,6 +2,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "@deemlol/next-icons";
+import loginImage from "@/public/images/LoginRegiserBG.png";
+import logo from "@/public/images/Logo.png";
+import Image from "next/image";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
@@ -55,14 +58,10 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-full  md:flex border border-gray-200 rounded-lg shadow pt-35">
+    <div className="min-h-screen md:flex border bg-[#94806D] border-gray-200 rounded-lg shadow p-6 pt-30">
       {/* Left side – Picture */}
-      <div className="hidden md:flex md:w-1/2 bg-gray-200">
-        <img
-          src="/hotel.jpg"
-          alt="Hotel"
-          className="w-full h-full object-cover"
-        />
+      <div className="hidden md:block w-full md:w-1/2 justify-center items-center">
+        <Image src={loginImage} alt="Login Image" className="object-cover" />
       </div>
 
       {/* Right side – Form */}

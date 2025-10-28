@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Eye } from "@deemlol/next-icons";
 import { EyeOff } from "@deemlol/next-icons";
+import Image from "next/image";
+import loginImage from "@/public/images/LoginRegiserBG.png";
+import logo from "@/public/images/Logo.png";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -55,23 +58,35 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-w-screen md:flex border border-gray-200 rounded-lg shadow p-6 pt-30">
+    <div className="flex flex-col md:flex-row border bg-[#94806D] border-gray-200 rounded-lg shadow p-6 pt-30">
       {/* Left side – Picture */}
-      <div className="hidden md:flex md:w-1/2 bg-gray-200">
-        <img
-          src="/hotel.jpg"
-          alt="Hotel"
-          className="w-full h-full object-cover"
+      <div className="hidden md:block min-h-screen md:w-1/2 justify-center items-center">
+        <Image
+          src={loginImage}
+          alt="Login Image"
+          className="w-full h-min pr-4 object-cover"
+          priority
         />
       </div>
 
       {/* Right side – Form */}
-      <div className="flex w-full md:w-1/2 items-center justify-center p-8 bg-white">
-        <div className="max-w-md w-full border border-gray-200 rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">
-            Login
-          </h2>
+      <div className="flex w-full md:w-1/2 items-start p-32 bg-white rounded-2xl">
+        <div className="max-w-screen w-full p-6">
+          <Image
+            src={logo}
+            alt="Logo"
+            width={70}
+            height={47}
+            className="mb-6"
+          />
 
+          <h2 className="text-5xl font-bold mb-3 text-start text-gray-900">
+            Hello, <br />
+            Welcome Back!
+          </h2>
+          <p className="text-sm font-bold text-gray-400 mb-9">
+            get ready for your next peaceful stay.
+          </p>
           {/* Error Alert */}
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 animate-in fade-in duration-200">
@@ -114,7 +129,7 @@ const LoginPage = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Email:</label>
+              <label className="block text-gray-700 mb-2">Email</label>
               <input
                 type="email"
                 value={email}
@@ -122,11 +137,11 @@ const LoginPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading || success}
                 required
-                className="w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1 bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full px-3 py-2 rounded-xl focus:outline-none   mt-1 border border-gray-400 rad disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 
-            <div className="mb-6">
+            <div className="mb-3">
               <label className="block text-gray-700 mb-2">Password:</label>
               <div className="relative">
                 <input
@@ -136,7 +151,7 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading || success}
                   required
-                  className="w-full px-3 py-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1 bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="w-full px-3 py-2 rounded-xl focus:outline-none   mt-1 border border-gray-400 rad disabled:opacity-50 disabled:cursor-not-allowed transition"
                 />
                 <button
                   type="button"
@@ -157,7 +172,7 @@ const LoginPage = () => {
             <div className="mb-8 flex items-center justify-between">
               <Link
                 href="/register"
-                className="text-sm text-emerald-500 hover:underline focus:outline-none"
+                className="text-sm text-[#E08429] font-bold hover:underline focus:outline-none"
               >
                 Create an account
               </Link>
@@ -166,7 +181,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading || success}
-              className="w-full py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-1/2 py-2 bg-[#d4883c] text-white font-semibold rounded hover:bg-[#C0A489] transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading && (
                 <svg
