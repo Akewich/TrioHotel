@@ -58,9 +58,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row border bg-[#94806D] border-gray-200 rounded-lg shadow p-6 pt-30">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#94806D] border border-gray-200 rounded-lg shadow p-6 pt-30">
       {/* Left side – Picture */}
-      <div className="hidden md:block min-h-screen md:w-1/2 justify-center items-center">
+      <div className="hidden md:flex md:w-1/2 justify-center items-center">
         <Image
           src={loginImage}
           alt="Login Image"
@@ -70,8 +70,8 @@ const LoginPage = () => {
       </div>
 
       {/* Right side – Form */}
-      <div className="flex w-full md:w-1/2 items-start p-32 bg-white rounded-2xl">
-        <div className="max-w-screen w-full p-6">
+      <div className="flex w-full md:w-1/2 items-start justify-center p-8 md:p-16 lg:p-24 bg-white rounded-2xl">
+        <div className="w-full max-w-md">
           <Image
             src={logo}
             alt="Logo"
@@ -137,7 +137,7 @@ const LoginPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading || success}
                 required
-                className="w-full px-3 py-2 rounded-xl focus:outline-none   mt-1 border border-gray-400 rad disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="w-full px-3 py-2 rounded-xl focus:outline-none mt-1 border border-gray-400 rad disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 

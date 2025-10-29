@@ -58,16 +58,29 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen md:flex border bg-[#94806D] border-gray-200 rounded-lg shadow p-6 pt-30">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#94806D] border border-gray-200 rounded-lg shadow p-6 pt-30">
       {/* Left side – Picture */}
-      <div className="hidden md:block w-full md:w-1/2 justify-center items-center">
-        <Image src={loginImage} alt="Login Image" className="object-cover" />
+      <div className="hidden md:flex md:w-1/2 justify-center items-center">
+        <Image
+          src={loginImage}
+          alt="Login Image"
+          className="w-full h-min pr-4 object-cover"
+          priority
+        />{" "}
       </div>
 
       {/* Right side – Form */}
-      <div className="flex w-full md:w-1/2 items-center justify-center p-8 bg-white">
-        <div className="max-w-md w-full p-6 border border-gray-200 rounded-lg shadow">
-          <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">
+      <div className="flex w-full md:w-1/2 items-start justify-center p-8 md:p-16 lg:p-24 bg-white rounded-2xl">
+        <div className="max-w-screen w-full p-6">
+          <Image
+            src={logo}
+            alt="Logo"
+            width={70}
+            height={47}
+            className="mb-6"
+          />
+
+          <h2 className="text-5xl font-bold mb-9 text-start text-gray-900">
             Register
           </h2>
           {/* Error Alert */}
@@ -112,7 +125,7 @@ const RegisterPage = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Username:</label>
+              <label className="block text-gray-700 mb-2">Username</label>
               <input
                 type="text"
                 name="username"
@@ -120,12 +133,12 @@ const RegisterPage = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded focus:outline-none mt-1 bg-gray-100"
+                className="w-full px-3 py-2 rounded-xl focus:outline-none mt-1 border border-gray-400 rad disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 
             <div className="mb-4">
-              <label className="block text-gray-700 mb-2">Email:</label>
+              <label className="block text-gray-700 mb-2">Email</label>
               <input
                 type="email"
                 name="email"
@@ -134,12 +147,12 @@ const RegisterPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading || success}
-                className="w-full px-3 py-2 rounded focus:outline-none mt-1 bg-gray-100"
+                className="w-full px-3 py-2 rounded-xl focus:outline-none mt-1 border border-gray-400 rad disabled:opacity-50 disabled:cursor-not-allowed transition"
               />
             </div>
 
             <div className="mb-6">
-              <label className="block text-gray-700 mb-2">Password:</label>
+              <label className="block text-gray-700 mb-2">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -149,7 +162,7 @@ const RegisterPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-3 py-2 rounded focus:outline-none mt-1 bg-gray-100"
+                  className="w-full px-3 py-2 rounded-xl focus:outline-none mt-1 border border-gray-400 rad disabled:opacity-50 disabled:cursor-not-allowed transition"
                 />
                 <button
                   type="button"
@@ -172,7 +185,7 @@ const RegisterPage = () => {
               Already have an account?{" "}
               <a
                 href="/login"
-                className="text-blue-600 hover:underline focus:outline-none"
+                className="text-[#E08429] font-bold hover:underline focus:outline-none"
               >
                 Login
               </a>
@@ -181,7 +194,7 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={isLoading || success}
-              className="w-full py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-1/2 py-2 bg-[#d4883c] text-white font-semibold rounded hover:bg-[#C0A489] transition disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading && (
                 <svg
