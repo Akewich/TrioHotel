@@ -7,6 +7,7 @@ import { Eye } from "@deemlol/next-icons";
 import { EyeOff } from "@deemlol/next-icons";
 import Image from "next/image";
 import loginImage from "@/public/images/LoginRegiserBG.png";
+// import loginImage from "@/public/images/bg1.png";
 import logo from "@/public/images/Logo.png";
 
 const LoginPage = () => {
@@ -58,19 +59,21 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#94806D] border border-gray-200 rounded-lg shadow p-6 pt-30">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#94806D] gap-6 p-4 md:p-6 md:pt-30">
       {/* Left side – Picture */}
-      <div className="hidden md:flex md:w-1/2 justify-center items-center">
-        <Image
-          src={loginImage}
-          alt="Login Image"
-          className="w-full h-min pr-4 object-cover"
-          priority
-        />
+      <div className="w-full md:w-1/2 flex justify-center items-start">
+        <div className="w-full md:aspect-square relative rounded-2xl overflow-hidden">
+          <Image
+            src={loginImage}
+            alt="Login Image"
+            fill
+            className="h-full w-full object-bottom md:object-cover"
+            priority
+          />
+        </div>
       </div>
-
       {/* Right side – Form */}
-      <div className="flex w-full md:w-1/2 items-start justify-center p-8 md:p-16 lg:p-24 bg-white rounded-2xl">
+      <div className="w-full h-auto md:w-1/2 md:h-1/2 flex items-center justify-start bg-white rounded-2xl p-4 md:p-30">
         <div className="w-full max-w-md">
           <Image
             src={logo}
@@ -85,7 +88,7 @@ const LoginPage = () => {
             Welcome Back!
           </h2>
           <p className="text-sm font-bold text-gray-400 mb-9">
-            get ready for your next peaceful stay.
+            Get ready for your next peaceful stay.
           </p>
           {/* Error Alert */}
           {error && (

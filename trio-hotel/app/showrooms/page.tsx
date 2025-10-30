@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Room } from "@/types/rooms"; // Make sure this type matches your API
 import SearchBox from "@/components/SearchBox";
+import Image from "next/image";
 
 export default function ShowRoomPage() {
   const router = useRouter();
@@ -53,6 +54,18 @@ export default function ShowRoomPage() {
     }
   };
 
+  const getRoomImages = (roomType: string): string[] => {
+    const imageMap: Record<string, string[]> = {
+      Standard: ["/images/standard/std1.png"],
+      Deluxe: ["/images/deluxe/dlx1.png"],
+      Suite: ["/images/suite/suite1.png"],
+      Family: ["/images/family/family1.png"],
+      Honeymoon: ["/images/honeymoon/hm1.png"],
+    };
+
+    return imageMap[roomType] || ["/images/rooms/default_room.jpg"];
+  };
+
   // Filter rooms whenever rooms or roomTypeParam changes
   useEffect(() => {
     if (rooms.length === 0) return;
@@ -65,7 +78,8 @@ export default function ShowRoomPage() {
     }
 
     // Only show available rooms
-    result = result.filter((room) => room.status === "available");
+
+    result = result.filter((room) => room.status);
 
     setFilteredRooms(result);
   }, [rooms, roomTypeParam]);
@@ -121,12 +135,35 @@ export default function ShowRoomPage() {
     }).format(price);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
+  const formatDate = (checkIn: string, checkOut: string): string => {
+    const startDate = new Date(checkIn);
+    const endDate = new Date(checkOut);
+
+    const options: Intl.DateTimeFormatOptions = {
       month: "short",
       day: "numeric",
-    });
+      year: "numeric",
+    };
+
+    // ถ้าอยู่ในปีเดียวกัน → ไม่ต้องแสดงปีซ้ำ
+    if (startDate.getFullYear() === endDate.getFullYear()) {
+      const start = startDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      });
+      const end = endDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      return `${start} – ${end}`;
+    }
+
+    // ถ้าข้ามปี → แสดงทั้งคู่เต็ม
+    return `${startDate.toLocaleDateString(
+      "en-US",
+      options
+    )} – ${endDate.toLocaleDateString("en-US", options)}`;
   };
 
   const getTitle = () => {
@@ -221,18 +258,30 @@ export default function ShowRoomPage() {
           {filteredRooms.map((room) => (
             <div
               key={room._id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+              className="bg-white rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
             >
+              {/* Image */}
+              <div className="relative h-48 w-full">
+                <Image
+                  src={getRoomImages(room.roomType)[0]}
+                  alt={`${room.roomType} room`}
+                  fill
+                  className="object-cover rounded-2xl"
+                  priority
+                />
+              </div>
+
+              {/* Content */}
               <div className="p-6">
+                {/* Room Type */}
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900">
-                      {room.roomType.replace(/_/g, " ")}
+                      {room.roomType.replace(/_/g, " ")} Room
                     </h3>
-                    <p className="text-gray-600 font-medium">
-                      Room #{room.roomNumber}
-                    </p>
                   </div>
+
+                  {/* Status */}
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
                       room.status
@@ -242,27 +291,27 @@ export default function ShowRoomPage() {
                   </span>
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Price:</span>
-                    <span className="font-semibold text-amber-600">
-                      {formatPrice(room.price)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Last Updated:</span>
-                    <span className="text-gray-900">
-                      {formatDate(room.updatedAt)}
-                    </span>
-                  </div>
+                {/* Room Number + Price */}
+                <div className="flex justify-between items-center mb-4">
+                  <span className="border text-gray-800 px-3 py-1 rounded-full text-sm">
+                    Room #{room.roomNumber}
+                  </span>
+                  <span className="font-semibold text-amber-600">
+                    {formatPrice(room.price)} / day
+                  </span>
                 </div>
 
+                {/* Date */}
+                <span className="text-xs text-gray-500">
+                  {formatDate(checkIn, checkOut)}
+                </span>
+
+                {/* Book Now Button */}
                 <button
                   onClick={() => handleViewRoom(room)}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-lg transition-colors duration-200 text-sm font-medium"
+                  className="w-1/2 flex justify-center bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-2xl transition-colors duration-200 text-sm font-medium mt-4"
                 >
-                  View Details
+                  Book now
                 </button>
               </div>
             </div>

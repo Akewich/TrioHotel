@@ -376,11 +376,6 @@ export default function RoomDetailPage() {
   const router = useRouter();
 
   const { data: session, status } = useSession();
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      // router.push("/login");
-    }
-  }, [status, router]);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -450,18 +445,130 @@ export default function RoomDetailPage() {
     setIsModalLogin(true);
   };
 
-  const handleBooking = () => {
-    if (!canBook()) {
+  // Add this function - handles showing the modal
+  const handleBooking = async () => {
+    // Check authentication
+    if (!session?.user?.email) {
       Swal.fire({
-        title: "Incomplete Info",
-        text: "Please select check-in and check-out dates and ensure all booking details are complete.",
+        title: "Login Required",
+        text: "Please sign in to book a room.",
+        icon: "warning",
+        confirmButtonColor: "#AD8054",
+      });
+      setIsModalLogin(true);
+      return;
+    }
+
+    // Validate room data
+    if (!room || room.status !== "available") {
+      Swal.fire({
+        title: "Room Unavailable",
+        text: "This room is not available for booking.",
+        icon: "error",
+        confirmButtonColor: "#AD8054",
+      });
+      return;
+    }
+
+    if (!room.checkIn || !room.checkOut) {
+      Swal.fire({
+        title: "Missing Dates",
+        text: "Please select check-in and check-out dates.",
         icon: "warning",
         confirmButtonColor: "#AD8054",
       });
       return;
     }
+
+    if (!room.adults || room.adults < 1) {
+      Swal.fire({
+        title: "Missing Guest Information",
+        text: "Please specify the number of guests.",
+        icon: "warning",
+        confirmButtonColor: "#AD8054",
+      });
+      return;
+    }
+
+    // Show confirmation modal
     setIsModalOpen(true);
     setModalView("summary");
+  };
+
+  // Add this function - handles actual booking submission
+  const confirmBooking = async () => {
+    if (!room || !session?.user?.email) return;
+
+    setIsBooking(true);
+
+    try {
+      const totalGuests = (room.adults || 0) + (room.children || 0);
+      const bookingData = {
+        email: session.user.email,
+        roomNumber: room.roomNumber,
+        checkIn: new Date(room.checkIn!).toISOString().split("T")[0],
+        checkOut: new Date(room.checkOut!).toISOString().split("T")[0],
+        guests: totalGuests.toString(),
+      };
+
+      console.log("Sending booking:", bookingData);
+
+      // Get token from session - adjust this based on your NextAuth setup
+      const token = (session as any)?.accessToken || (session as any)?.token;
+
+      console.log("Token:", token); // Debug log to check if token exists
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }), // Add token if exists
+          },
+          body: JSON.stringify(bookingData),
+        }
+      );
+
+      // Get response as text first
+      const responseText = await response.text();
+
+      // Check if HTML error page
+      if (
+        responseText.startsWith("<!DOCTYPE") ||
+        responseText.startsWith("<html")
+      ) {
+        throw new Error(
+          "API endpoint not found. Please check your API route setup."
+        );
+      }
+
+      // Parse JSON
+      const result = JSON.parse(responseText);
+
+      if (!response.ok) {
+        throw new Error(result.message || "Booking failed");
+      }
+
+      console.log("Booking success:", result);
+
+      // Show success view
+      setModalView("success");
+    } catch (error) {
+      console.error("Booking error:", error);
+
+      Swal.fire({
+        title: "Booking Failed",
+        text: error instanceof Error ? error.message : "Please try again.",
+        icon: "error",
+        confirmButtonColor: "#AD8054",
+      });
+
+      setIsModalOpen(false);
+      setModalView("summary");
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   // Fallback image handler
@@ -620,25 +727,7 @@ export default function RoomDetailPage() {
                           Cancel
                         </button>
                         <button
-                          onClick={async () => {
-                            setIsBooking(true);
-                            try {
-                              // Simulate API call
-                              await new Promise((resolve) =>
-                                setTimeout(resolve, 2000)
-                              );
-                              setModalView("success"); // ✅ Switch to success view
-                            } catch (error) {
-                              Swal.fire({
-                                title: "Booking Failed",
-                                text: "Please try again.",
-                                icon: "error",
-                                confirmButtonColor: "#AD8054",
-                              });
-                            } finally {
-                              setIsBooking(false);
-                            }
-                          }}
+                          onClick={confirmBooking} // ← Change this line
                           disabled={isBooking}
                           className="flex-1 py-3 px-4 bg-[#AD8054] hover:bg-[#ddbc9b] text-white rounded-xl font-medium disabled:opacity-70 flex items-center justify-center"
                         >
