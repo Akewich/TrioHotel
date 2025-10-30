@@ -4,6 +4,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+// Default Of function
 export default function BookingConfirmedModal({
   isOpen,
   onClose,

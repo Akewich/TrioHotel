@@ -372,16 +372,12 @@ export default function RoomDetailPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [modalView, setModalView] = useState<"summary" | "success">("summary");
+  const [isModalLogin, setIsModalLogin] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const { data: session, status } = useSession();
-  // const checkIn = searchParams.get("checkIn");
-  // const checkOut = searchParams.get("checkOut");
-  // const adults = searchParams.get("adults");
-  // const children = searchParams.get("children");
-  // const roomCount = searchParams.get("room");
 
+  const searchParams = useSearchParams();
   useEffect(() => {
     const roomNumber = searchParams.get("roomNumber");
     const roomType = searchParams.get("roomType");
@@ -441,21 +437,138 @@ export default function RoomDetailPage() {
     if (room.status !== "available") return false;
     if (!room.checkIn || !room.checkOut) return false;
     if (!room.adults || room.adults < 1) return false;
+    if (!session) return false;
     return true;
   };
 
-  const handleBooking = () => {
-    if (!canBook()) {
+  const handleLogin = () => {
+    setIsModalLogin(true);
+  };
+
+  // Add this function - handles showing the modal
+  const handleBooking = async () => {
+    // Check authentication
+    if (!session?.user?.email) {
       Swal.fire({
-        title: "Incomplete Info",
-        text: "Please select check-in/check-out dates and at least 1 adult.",
+        title: "Login Required",
+        text: "Please sign in to book a room.",
+        icon: "warning",
+        confirmButtonColor: "#AD8054",
+      });
+      setIsModalLogin(true);
+      return;
+    }
+
+    // Validate room data
+    if (!room || room.status !== "available") {
+      Swal.fire({
+        title: "Room Unavailable",
+        text: "This room is not available for booking.",
+        icon: "error",
+        confirmButtonColor: "#AD8054",
+      });
+      return;
+    }
+
+    if (!room.checkIn || !room.checkOut) {
+      Swal.fire({
+        title: "Missing Dates",
+        text: "Please select check-in and check-out dates.",
         icon: "warning",
         confirmButtonColor: "#AD8054",
       });
       return;
     }
+
+    if (!room.adults || room.adults < 1) {
+      Swal.fire({
+        title: "Missing Guest Information",
+        text: "Please specify the number of guests.",
+        icon: "warning",
+        confirmButtonColor: "#AD8054",
+      });
+      return;
+    }
+
+    // Show confirmation modal
     setIsModalOpen(true);
     setModalView("summary");
+  };
+
+  // Add this function - handles actual booking submission
+  const confirmBooking = async () => {
+    if (!room || !session?.user?.email) return;
+
+    setIsBooking(true);
+
+    try {
+      const totalGuests = (room.adults || 0) + (room.children || 0);
+      const bookingData = {
+        email: session.user.email,
+        roomNumber: room.roomNumber,
+        checkIn: new Date(room.checkIn!).toISOString().split("T")[0],
+        checkOut: new Date(room.checkOut!).toISOString().split("T")[0],
+        guests: totalGuests.toString(),
+      };
+
+      console.log("Sending booking:", bookingData);
+
+      // Get token from session - adjust this based on your NextAuth setup
+      const token = (session as any)?.accessToken || (session as any)?.token;
+
+      console.log("Token:", token); // Debug log to check if token exists
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }), // Add token if exists
+          },
+          body: JSON.stringify(bookingData),
+        }
+      );
+
+      // Get response as text first
+      const responseText = await response.text();
+
+      // Check if HTML error page
+      if (
+        responseText.startsWith("<!DOCTYPE") ||
+        responseText.startsWith("<html")
+      ) {
+        throw new Error(
+          "API endpoint not found. Please check your API route setup."
+        );
+      }
+
+      // Parse JSON
+      const result = JSON.parse(responseText);
+
+      if (!response.ok) {
+        throw new Error(result.message || "Booking failed");
+      }
+
+      console.log("Booking success:", result);
+
+      // Show success view
+      setModalView("success");
+    } catch (error) {
+      console.error("Booking error:", error);
+
+      Swal.fire({
+        title: "Booking Failed",
+        text: error instanceof Error ? error.message : "Please try again.",
+        icon: "error",
+        confirmButtonColor: "#AD8054",
+      });
+
+      setIsModalOpen(false);
+      setModalView("summary");
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   // Fallback image handler
@@ -525,126 +638,6 @@ export default function RoomDetailPage() {
               / night
             </div>
 
-            {/* Booking Button */}
-            {/* {isModalOpen && (
-              <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                onClick={() => setIsModalOpen(false)}
-              >
-                <div
-                  className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative"
-                  onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-                > */}
-            {/* Close button */}
-            {/* <button
-                    // onClick={() => setIsModalOpen(false)}
-                    onClick={handleBooking}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button> */}
-
-            {/* Modal Header
-                  <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Confirm Booking
-                    </h2>
-                    <p className="text-gray-600 mt-2">
-                      {room?.roomType} Room #{room?.roomNumber}
-                    </p>
-                  </div> */}
-
-            {/* Booking Summary
-                  <div className="space-y-4 mb-6">
-                    <div className="flex justify-between py-2 border-b">
-                      <span className="text-gray-600">Check-in:</span>
-                      <span className="font-medium">
-                        {room && room.checkIn
-                          ? new Date(room.checkIn).toLocaleDateString()
-                          : "Not selected"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b">
-                      <span className="text-gray-600">Check-out:</span>
-                      <span className="font-medium">
-                        {room && room.checkOut
-                          ? new Date(room.checkOut).toLocaleDateString()
-                          : "Not selected"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b">
-                      <span className="text-gray-600">Guests:</span>
-                      <span className="font-medium">
-                        {room.adults ? `${room.adults} adults` : ""}
-                        {room.children && room.adults ? ", " : ""}
-                        {room.children ? `${room.children} children` : ""}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b">
-                      <span className="text-gray-600">Price:</span>
-                      <span className="font-bold text-lg text-[#AD8054]">
-                        {room ? formatPrice(room.price) : ""} / night
-                      </span>
-                    </div>
-                  </div> */}
-
-            {/* Action Buttons */}
-            {/* <div className="flex gap-3">
-                    <button
-                      onClick={() => setIsModalOpen(false)}
-                      className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleBooking}
-                      disabled={isBooking}
-                      className="flex-1 py-3 px-4 bg-[#AD8054] hover:bg-[#ddbc9b] text-white rounded-xl font-medium transition-colors disabled:opacity-70 flex items-center justify-center"
-                    >
-                      {isBooking ? (
-                        <>
-                          <svg
-                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          Booking...
-                        </>
-                      ) : (
-                        "Confirm Booking"
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )} */}
             {isModalOpen && (
               <div
                 className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
@@ -734,25 +727,7 @@ export default function RoomDetailPage() {
                           Cancel
                         </button>
                         <button
-                          onClick={async () => {
-                            setIsBooking(true);
-                            try {
-                              // Simulate API call
-                              await new Promise((resolve) =>
-                                setTimeout(resolve, 2000)
-                              );
-                              setModalView("success"); // ✅ Switch to success view
-                            } catch (error) {
-                              Swal.fire({
-                                title: "Booking Failed",
-                                text: "Please try again.",
-                                icon: "error",
-                                confirmButtonColor: "#AD8054",
-                              });
-                            } finally {
-                              setIsBooking(false);
-                            }
-                          }}
+                          onClick={confirmBooking} // ← Change this line
                           disabled={isBooking}
                           className="flex-1 py-3 px-4 bg-[#AD8054] hover:bg-[#ddbc9b] text-white rounded-xl font-medium disabled:opacity-70 flex items-center justify-center"
                         >
@@ -866,14 +841,93 @@ export default function RoomDetailPage() {
                 </div>
               </div>
             )}
+
+            {/* Modal Login */}
+            {isModalLogin && (
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => setIsModalLogin(false)}
+              >
+                <div
+                  className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-fade-in-up"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close button */}
+                  <button
+                    onClick={() => setIsModalLogin(false)}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                  <div className="text-center">
+                    <p className="text-xl font-md text-gray-900 mb-4">
+                      Please sign in to book this room.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setIsModalLogin(false);
+                        router.push("/login");
+                      }}
+                      className="bg-[#AD8054] hover:bg-[#ddbc9b] text-white cursor-pointer  py-2 px-5 rounded-full font-medium"
+                    >
+                      Login
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsModalLogin(false);
+                        router.push("/register");
+                      }}
+                      className=" text-black cursor-pointer py-2 px-5 rounded-full font-medium"
+                    >
+                      Register
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               {room.status === "available" ? (
-                <button
-                  onClick={handleBooking}
-                  className="bg-[#AD8054] hover:bg-[#ddbc9b] text-white py-3 px-8 rounded-full transition-colors duration-200 font-medium w-full sm:w-auto"
-                >
-                  Book Now
-                </button>
+                status === "authenticated" ? (
+                  <button
+                    onClick={handleBooking}
+                    className={`py-3 px-8 rounded-full transition-colors duration-200 font-medium w-full sm:w-auto ${
+                      canBook()
+                        ? "bg-[#AD8054] hover:bg-[#ddbc9b] text-white cursor-pointer"
+                        : "bg-[#AD8054] hover:bg-[#ddbc9b] text-white cursor-pointer"
+                    }`}
+                  >
+                    Book Now
+                  </button>
+                ) : status === "loading" ? (
+                  <button
+                    disabled
+                    className="bg-gray-300 text-gray-500 py-3 px-8 rounded-full font-medium w-full sm:w-auto cursor-not-allowed"
+                  >
+                    Loading...
+                  </button>
+                ) : (
+                  // Unauthenticated: either disable or prompt login
+                  <button
+                    onClick={handleLogin}
+                    className="bg-[#AD8054] hover:bg-[#ddbc9b] text-white cursor-pointer py-3 px-8 rounded-full font-medium w-full sm:w-auto"
+                  >
+                    Book Now
+                  </button>
+                )
               ) : (
                 <button className="bg-gray-300 text-gray-500 py-3 px-8 rounded-lg font-medium w-full cursor-not-allowed">
                   {room.status === "reserved"

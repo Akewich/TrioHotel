@@ -7,6 +7,7 @@ import { DateRangePicker } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { useRouter, useSearchParams } from "next/navigation";
+import ReactDOM from "react-dom";
 
 type DateRangeType = {
   startDate: Date | undefined;
@@ -53,7 +54,7 @@ const SearchBox = ({ isHomepage = false }: { isHomepage?: boolean }) => {
         width: "75%",
         maxHeight: "90vh",
         overflowY: "auto",
-        zIndex: 50,
+        zIndex: 9999,
       };
     } else {
       return {
@@ -64,7 +65,7 @@ const SearchBox = ({ isHomepage = false }: { isHomepage?: boolean }) => {
         width: "90vw",
         maxWidth: "600px",
         maxHeight: "calc(100vh - 160px)",
-        zIndex: 50,
+        zIndex: 9999,
       };
     }
   };
@@ -256,39 +257,45 @@ const SearchBox = ({ isHomepage = false }: { isHomepage?: boolean }) => {
           </svg>
         </div>
 
-        {isCalendarOpen && (
-          <div
-            ref={calendarRef}
-            className="bg-white rounded-2xl shadow-xl border border-gray-200"
-            style={getCalendarStyle()}
-          >
+        {isCalendarOpen &&
+          ReactDOM.createPortal(
             <div
-              className="overflow-y-auto p-4"
-              style={{ maxHeight: "calc(90vh - 60px)" }}
-              onClick={(e) => e.stopPropagation()}
+              ref={calendarRef}
+              className="fixed inset-0 flex justify-center items-start z-[99999]"
+              onClick={() => setIsCalendarOpen(false)}
             >
-              <DateRangePicker
-                ranges={[dateRange]}
-                onChange={handleRangeChange}
-                direction="horizontal"
-                showSelectionPreview={true}
-                moveRangeOnFirstSelection={false}
-                months={1}
-                minDate={new Date()}
-                className="rounded-xl"
-              />
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsCalendarOpen(false)}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 transition-colors shadow-md"
+              <div
+                className="bg-white rounded-2xl shadow-xl border border-gray-200 w-[90vw] max-w-[600px] mt-[10vh]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  className="overflow-y-auto p-4"
+                  style={{ maxHeight: "calc(90vh - 60px)" }}
                 >
-                  Done
-                </button>
+                  <DateRangePicker
+                    ranges={[dateRange]}
+                    onChange={handleRangeChange}
+                    direction="horizontal"
+                    showSelectionPreview={true}
+                    moveRangeOnFirstSelection={false}
+                    months={1}
+                    minDate={new Date()}
+                    className="rounded-xl"
+                  />
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setIsCalendarOpen(false)}
+                      className="px-4 py-2 bg-amber-600 text-white rounded-xl font-medium hover:bg-amber-700 transition-colors shadow-md"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body
+          )}
       </div>
 
       {/* Guests */}

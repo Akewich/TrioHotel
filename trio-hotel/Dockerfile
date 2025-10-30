@@ -2,10 +2,11 @@
 
 # Stage 1: Install dependencies
 FROM node:20-alpine AS deps
+
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+COPY . .
 RUN \
     if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
     elif [ -f package-lock.json ]; then npm ci; \
