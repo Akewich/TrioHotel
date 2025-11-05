@@ -54,6 +54,7 @@ export const authOptions: NextAuthOptions = {
             name: data.customer.name,
             email: data.customer.email,
             username: data.customer.username,
+            role: data.customer.role,
             accessToken: data.token,
           };
         } catch (error) {
@@ -76,6 +77,7 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.email = user.email;
         token.username = user.username;
+        token.role = user.role;
         token.accessToken = user.accessToken;
       }
       return token;
@@ -87,6 +89,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string;
         session.user.email = token.email as string;
         session.user.username = token.username as string;
+        session.user.role = token.role as string;
       }
       (session as any).accessToken = token.accessToken as string;
       return session;

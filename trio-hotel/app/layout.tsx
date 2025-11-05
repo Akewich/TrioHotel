@@ -10,7 +10,7 @@ import { authOptions } from "./api/auth/[...nextauth]/route";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Trio Hotel",
+  title: "Sunset Lagoon",
   description: "A hotel booking website",
 };
 

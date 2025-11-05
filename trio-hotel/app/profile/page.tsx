@@ -175,22 +175,22 @@ function ProfilePage() {
         <div className="bg-white p-6 rounded-2xl shadow-lg mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="mb-2 text-lg">
-              <span className="font-semibold">Name:</span>{" "}
+              <span className="font-semibold">Name :</span>{" "}
               <span className="text-[#AD8054]">
                 {session.user.name || session.user.username || "Guest"}
               </span>
             </p>
             <p className="text-lg">
-              <span className="font-semibold">Email:</span>{" "}
+              <span className="font-semibold">Email :</span>{" "}
               <span className="text-[#AD8054]">{session.user.email}</span>
             </p>
+            <p className="text-lg">
+              <span className="font-semibold">Role :</span>{" "}
+              <span className="text-[#AD8054]">
+                {session.user.role || "User"}
+              </span>
+            </p>
           </div>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="bg-[#AD8054] hover:bg-[#ddbc9b] rounded-xl px-6 py-2 text-white transition-colors font-medium"
-          >
-            Logout
-          </button>
         </div>
 
         {/* Bookings Section */}
@@ -316,7 +316,7 @@ function ProfilePage() {
                           <p className="font-semibold">Guests</p>
                           <p>
                             {booking.guests} guest
-                            {parseInt(booking.guests) !== 1 ? "s" : ""}
+                            {parseInt(booking.guests) !== 1 ? "s" : ""} : {}
                           </p>
                         </div>
                       </div>

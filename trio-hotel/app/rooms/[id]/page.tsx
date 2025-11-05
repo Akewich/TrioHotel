@@ -6,7 +6,8 @@ import { Room } from "@/types/rooms";
 import Swal from "sweetalert2";
 import bg from "@/public/images/background.jpg";
 import { useSession } from "next-auth/react";
-
+import localFont from "next/font/local";
+import { Charis_SIL } from "next/font/google";
 // Icons
 import { GiForkKnifeSpoon } from "react-icons/gi";
 import { FaCoffee } from "react-icons/fa";
@@ -23,7 +24,22 @@ import { RiSafe3Line } from "react-icons/ri";
 import { FaGlassCheers } from "react-icons/fa";
 import { MdOutlineBathtub } from "react-icons/md";
 import { MdOutlineLocationOn } from "react-icons/md";
+import { MdArrowLeft } from "react-icons/md";
 import { TbBeach } from "react-icons/tb";
+
+// Amenity definitions
+type Amenity = {
+  icon: React.ReactNode;
+  category: string;
+  description: string;
+};
+
+// font Charis SIL
+const charis = Charis_SIL({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 // Room descriptions
 const ROOM_DESCRIPTIONS: Record<string, string> = {
@@ -37,13 +53,6 @@ const ROOM_DESCRIPTIONS: Record<string, string> = {
     "This room accommodates up to 5 guests features 2 large beds and 1 bathroom. (Size: 50–55 sqm)\nComplimentary breakfast and coffee are available at the central lounge. The beach is located nearby.",
   Honeymoon:
     "This room accommodates up to 2 guests features 1 king-size bed, a jacuzzi, and 1 bathroom. (Size: 45–50 sqm)\nComplimentary breakfast and coffee are available at the central lounge. The beach is located nearby.",
-};
-
-// Amenity definitions
-type Amenity = {
-  icon: React.ReactNode;
-  category: string;
-  description: string;
 };
 
 const getAmenities = (roomType: string): Amenity[] => {
@@ -377,6 +386,8 @@ export default function RoomDetailPage() {
   const [isBooking, setIsBooking] = useState(false);
   const [modalView, setModalView] = useState<"summary" | "success">("summary");
   const [isModalLogin, setIsModalLogin] = useState(false);
+  const [localAdults, setLocalAdults] = useState(room?.adults || 1);
+  const [localChildren, setLocalChildren] = useState(room?.children || 0);
   const router = useRouter();
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
@@ -436,13 +447,14 @@ export default function RoomDetailPage() {
     }
   };
 
-  const canBook = (): boolean => {
-    if (!room) return false;
-    if (room.status !== "available") return false;
-    if (!room.checkIn || !room.checkOut) return false;
-    if (!room.adults || room.adults < 1) return false;
-    if (!session) return false;
-    return true;
+  // Format date
+  const formatDate = (dateStr: string | undefined): string => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   };
 
   const handleLogin = () => {
@@ -470,6 +482,13 @@ export default function RoomDetailPage() {
       });
       return;
     }
+    // update room with the new value
+    const updatedRoom = {
+      ...room!,
+      adults: localAdults,
+      children: localChildren,
+    };
+    setRoom(updatedRoom);
 
     if (!room.checkIn || !room.checkOut) {
       Swal.fire({
@@ -605,12 +624,14 @@ export default function RoomDetailPage() {
   }
 
   return (
-    <div className="bg-[#FFF6E2] min-h-screen">
+    <div className={`${charis.className} bg-[#FFF6E2] min-h-screen`}>
+      {" "}
       <div className="container mx-auto py-12 px-4 md:px-6 pt-[120px]">
         <button
           onClick={() => router.back()}
           className="mb-6 text-emerald-600 hover:text-emerald-800 flex items-center gap-2"
         >
+          <MdArrowLeft className="text-emerald-600 text-2xl" />
           Back to All Rooms
         </button>
 
@@ -632,7 +653,7 @@ export default function RoomDetailPage() {
 
             <div className="text-3xl text-gray-900 font-semibold mb-4">
               <span className="text-[#AD8054]">{formatPrice(room.price)} </span>
-              / night
+              / Night
             </div>
 
             {isModalOpen && (
@@ -651,28 +672,6 @@ export default function RoomDetailPage() {
                     className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-fade-in-up"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <button
-                      onClick={() => {
-                        setIsModalOpen(false);
-                        setModalView("summary");
-                      }}
-                      className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-10"
-                    >
-                      <svg
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                       <svg
                         className="w-8 h-8 text-green-600"
@@ -695,17 +694,19 @@ export default function RoomDetailPage() {
                     <p className="text-gray-600 text-center mb-6">
                       Your stay has been successfully booked!
                     </p>
-
-                    <div className="space-y-3 mb-6 text-left">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Room:</span>
-                        <span className="font-medium">
-                          {room.roomType} #{room.roomNumber}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Guests:</span>
-                        <span className="font-medium">
+                    <h3 className="text-[#818181] font-bold mb-1">Date</h3>
+                    <div className="flex justify-around font-medium mb-5">
+                      <span className="font-medium pl-3 text-[#333333]">
+                        {formatDate(room.checkIn)}
+                      </span>
+                      -<span>{formatDate(room.checkOut)}</span>
+                    </div>
+                    <div className="mb-5 text-left pt-2 border-t border-gray-200">
+                      <div className="justify-between">
+                        <h3 className="text-[#818181] font-bold mb-1">
+                          Guests
+                        </h3>
+                        <span className="font-medium pl-3 text-[#333333]">
                           {room.adults} adult{room.adults !== 1 ? "s" : ""}
                           {room.children
                             ? `, ${room.children} child${
@@ -714,9 +715,24 @@ export default function RoomDetailPage() {
                             : ""}
                         </span>
                       </div>
-                      <div className="flex justify-between pt-2 border-t border-gray-200">
-                        <span className="text-gray-600">Total Paid:</span>
-                        <span className="font-bold text-lg text-green-600">
+                    </div>
+                    <div className="mb-5 text-left pt-2 border-t border-gray-200">
+                      <h3 className="text-[#818181] font-bold mb-1">
+                        Room & Stay
+                      </h3>
+                      <div className="flex justify-between text-[16px]">
+                        <span>Room Type : {room.roomType}</span>
+                        <span className="text-gray-400">|</span>
+                        <span>Room : {room.roomNumber}</span>
+                        <span className="text-gray-400">|</span>
+                        <span>Floor : {formatFloor(room.roomNumber)}</span>
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200 mb-5">
+                      <h3 className="text-[#818181] font-bold mb-1">Payment</h3>
+                      <div className="flex justify-between">
+                        <span className="pl-3">Amount</span>
+                        <span className="font-bold text-lg pr-3 text-green-600">
                           {formatPrice((room?.price ?? 0) - 5)}
                         </span>
                       </div>
@@ -726,7 +742,7 @@ export default function RoomDetailPage() {
                       <button
                         onClick={() => {
                           setIsModalOpen(false);
-                          router.push("/my-bookings");
+                          router.push("/profile");
                         }}
                         className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 font-medium"
                       >
@@ -792,22 +808,65 @@ export default function RoomDetailPage() {
 
                       <div className="border-b border-gray-200 my-4" />
 
-                      <div className="mb-4">
-                        <h3 className="font-bold text-gray-700 mb-2">Guests</h3>
-                        <div className="flex pl-4 justify-between items-center">
-                          <span className="text-gray-600">Adult</span>
-                          <span className="w-8 h-8 rounded-full bg-[#AD8054] text-white flex items-center justify-center text-sm">
-                            {room.adults}
+                      <div className="gap-6 mb-6 mt-6">
+                        <label className="block font-bold text-gray-700 mb-1">
+                          Guest
+                        </label>
+                        {/* Adults */}
+                        <div className="flex justify-between px-5 items-center gap-3">
+                          <span className="text-sm font-medium text-gray-700 w-16">
+                            Adults
                           </span>
-                        </div>
-                        {room.children !== undefined && (
-                          <div className="flex pl-4 justify-between items-center mt-2">
-                            <span className="text-gray-600">Children</span>
-                            <span className="w-8 h-8 rounded-full bg-[#AD8054] text-white flex items-center justify-center text-sm">
-                              {room.children}
+                          <div className="flex items-center rounded-lg">
+                            <button
+                              onClick={() =>
+                                setLocalAdults(Math.max(1, localAdults - 1))
+                              }
+                              className="w-7 h-7 items-center text-gray-400 justify-center border border-gray-400 rounded-full hover:bg-gray-100"
+                            >
+                              –
+                            </button>
+                            <span className="px-4 py-1 font-medium">
+                              {localAdults}
                             </span>
+                            <button
+                              onClick={() =>
+                                setLocalAdults(Math.min(5, localAdults + 1))
+                              }
+                              className="w-7 h-7 items-center text-gray-400 justify-center border border-gray-400 rounded-full hover:bg-gray-100 "
+                            >
+                              +
+                            </button>
                           </div>
-                        )}
+                        </div>
+
+                        {/* Children */}
+                        <div className="flex justify-between px-5 items-center gap-3">
+                          <span className="text-sm font-medium text-gray-700 w-16">
+                            Children
+                          </span>
+                          <div className="flex items-center rounded-lg">
+                            <button
+                              onClick={() =>
+                                setLocalChildren(Math.max(0, localChildren - 1))
+                              }
+                              className="w-7 h-7 items-center text-gray-400 justify-center border border-gray-400 rounded-full hover:bg-gray-100"
+                            >
+                              –
+                            </button>
+                            <span className="px-4 py-1 font-medium">
+                              {localChildren}
+                            </span>
+                            <button
+                              onClick={() =>
+                                setLocalChildren(Math.min(3, localChildren + 1))
+                              }
+                              className="w-7 h-7 items-center text-gray-400 justify-center border border-gray-400 rounded-full hover:bg-gray-100"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="border-b border-gray-200 my-4" />
@@ -817,21 +876,13 @@ export default function RoomDetailPage() {
                           Trip Dates
                         </h3>
                         <div className="border-2 border-gray-300 rounded-xl p-3">
-                          <div className="flex justify-between text-sm text-gray-500 mb-1">
+                          <div className="flex justify-around text-sm text-gray-500 mb-1">
                             <span>Trip Start On</span>
                             <span>Trip End On</span>
                           </div>
-                          <div className="flex justify-between font-medium">
-                            <span>
-                              {room.checkIn
-                                ? new Date(room.checkIn).toLocaleDateString()
-                                : "—"}
-                            </span>
-                            <span>
-                              {room.checkOut
-                                ? new Date(room.checkOut).toLocaleDateString()
-                                : "—"}
-                            </span>
+                          <div className="flex justify-around font-medium">
+                            <span>{formatDate(room.checkIn)}</span> -
+                            <span>{formatDate(room.checkOut)}</span>
                           </div>
                         </div>
                       </div>
@@ -842,28 +893,28 @@ export default function RoomDetailPage() {
                         <h3 className="font-bold text-gray-700 mb-3">
                           Room Details
                         </h3>
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-3 gap-7 ml-1">
                           <div>
-                            <label className="text-xs text-gray-500">
+                            <label className="text-sm text-gray-500">
                               Room Type
                             </label>
-                            <div className="mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium">
+                            <div className="mt-1 px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium">
                               {room.roomType}
                             </div>
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">
+                            <label className="text-sm text-gray-500">
                               Room Number
                             </label>
-                            <div className="mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium">
+                            <div className="mt-1 px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium">
                               {room.roomNumber}
                             </div>
                           </div>
                           <div>
-                            <label className="text-xs text-gray-500">
+                            <label className="text-sm text-gray-500">
                               Floor
                             </label>
-                            <div className="mt-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium">
+                            <div className="mt-1 px-3 py-1 border border-gray-200 rounded-lg text-sm font-medium">
                               {formatFloor(room.roomNumber)}
                             </div>
                           </div>
@@ -871,16 +922,6 @@ export default function RoomDetailPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <button
-                          onClick={() => {
-                            setIsModalOpen(false);
-                            setIsSecondModal(false);
-                            setIsThirdModal(false);
-                          }}
-                          className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium"
-                        >
-                          Cancel
-                        </button>
                         <button
                           onClick={confirmBooking}
                           disabled={isBooking}
@@ -910,8 +951,18 @@ export default function RoomDetailPage() {
                               Booking...
                             </>
                           ) : (
-                            "Confirm Booking"
+                            "Confirm "
                           )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setIsModalOpen(false);
+                            setIsSecondModal(false);
+                            setIsThirdModal(false);
+                          }}
+                          className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium"
+                        >
+                          Cancel
                         </button>
                       </div>
                     </div>
@@ -1019,8 +1070,7 @@ export default function RoomDetailPage() {
 
                           <div className="bg-[#333333] rounded-b-2xl p-5 w-full flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-3 h-3 rounded-full bg-white animate-pulse ml-10"></div>
-                              <span className="text-white font-bold text-lg">
+                              <span className="ml-10 uppercase text-white font-bold text-lg">
                                 Total Price
                               </span>
                             </div>
