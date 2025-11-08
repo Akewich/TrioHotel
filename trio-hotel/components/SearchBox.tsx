@@ -116,10 +116,17 @@ const SearchBox = ({ isHomepage = false }: { isHomepage?: boolean }) => {
       return;
     }
 
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
     const params = new URLSearchParams({
       roomType,
-      checkIn: dateRange.startDate.toISOString(),
-      checkOut: dateRange.endDate.toISOString(),
+      checkIn: formatDate(dateRange.startDate),
+      checkOut: formatDate(dateRange.endDate),
       adults: guests.adults.toString(),
       children: guests.children.toString(),
       room: guests.room.toString(),

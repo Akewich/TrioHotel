@@ -15,6 +15,21 @@ export interface Room {
   roomCount?: number;
 }
 
+export interface Booking {
+  bookingId: string;
+  email: string;
+  username: string;
+  roomNumber: string;
+  roomType: string;
+  price: number;
+  status: "available" | "reserved" | "occupied" | "maintenance";
+  updatedAt: string;
+  checkIn?: string;
+  checkOut?: string;
+  guests: string;
+  bookingStatus: string;
+}
+
 // Extended interface for room details (if your detail endpoint returns more data)
 export interface RoomDetail extends Room {
   description?: string;

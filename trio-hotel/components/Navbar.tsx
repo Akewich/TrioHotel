@@ -12,7 +12,8 @@ const links = [
   { name: "home", path: "/" },
   { name: "rooms", path: "/showrooms" },
   { name: "contact", path: "/contact" },
-  { name: "Your Room", path: "/profile" },
+  { name: "my bookings", path: "/profile" },
+  { name: "admin", path: "/admin" },
 ];
 
 const authLinks = [{ name: "login", path: "/login" }];
@@ -76,9 +77,21 @@ const Navbar = () => {
         {/* Center: Main links */}
         <nav className="flex gap-8">
           {links.map((link) => {
+            //  If you are not login yet
             if (link.path === "/profile" && status !== "authenticated") {
               return null;
             }
+
+            // If you are not admin
+            if (link.path === "/admin") {
+              if (
+                status !== "authenticated" ||
+                session?.user?.role !== "admin"
+              ) {
+                return null;
+              }
+            }
+
             return (
               <Link
                 key={link.path}
