@@ -139,7 +139,7 @@ const Navbar = () => {
             >
               <p className="text-[#AD8054]">Hi, </p>
               <span className="capitalize text-[#AD8054] font-extrabold">
-                {session.user?.name ||
+                {session.user?.username ||
                   session.user?.email?.split("@")[0] ||
                   "User"}
               </span>
