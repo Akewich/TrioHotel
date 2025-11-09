@@ -520,9 +520,6 @@ export default function AdminPage() {
                         </span>
                       </div>
                     </div>
-                    <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold">
-                      {room.roomType}
-                    </span>
                   </div>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
