@@ -658,7 +658,7 @@ export default function RoomDetailPage() {
 
             {isModalOpen && (
               <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto"
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 items-center justify-center p-4 md:p-8 overflow-y-auto"
                 onClick={() => {
                   setIsModalOpen(false);
                   setIsSecondModal(false);
@@ -669,7 +669,7 @@ export default function RoomDetailPage() {
                 {/* SUCCESS MODAL: CENTERED */}
                 {modalView === "success" && room && (
                   <div
-                    className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-fade-in-up"
+                    className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative animate-fade-in-up my-auto"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -764,11 +764,11 @@ export default function RoomDetailPage() {
                 {/* SUMMARY VIEW: SIDE-BY-SIDE */}
                 {modalView === "summary" && (
                   <div
-                    className="flex flex-col lg:flex-row gap-6 w-full max-w-6xl mx-auto"
+                    className="flex flex-col lg:flex-row gap-6 w-full max-w-6xl mx-auto my-8 "
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Left: Confirm Booking */}
-                    <div className="bg-white rounded-2xl shadow-2xl w-full lg:w-1/2 p-6 relative animate-fade-in-up max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full lg:w-1/2 p-6 relative animate-fade-in-up max-h-[85vh] overflow-y-auto">
                       <button
                         onClick={() => {
                           setIsModalOpen(false);
@@ -968,7 +968,8 @@ export default function RoomDetailPage() {
                     </div>
 
                     {/* Right: Hotel + Price Details */}
-                    <div className="flex flex-col gap-6 w-full lg:w-1/2">
+                    <div className="flex flex-col gap-6 w-full lg:w-1/2 max-h-[85vh] overflow-y-auto">
+                      {" "}
                       {isSecondModal && (
                         <div className="bg-white rounded-2xl shadow-2xl w-full p-6 relative animate-fade-in-up">
                           <button
@@ -1017,7 +1018,6 @@ export default function RoomDetailPage() {
                           </div>
                         </div>
                       )}
-
                       {isThirdModal && (
                         <div className="bg-white rounded-2xl shadow-2xl w-full relative animate-fade-in-up">
                           <div className="px-8 pt-6">

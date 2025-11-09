@@ -204,7 +204,22 @@ export default function AdminPage() {
     }).format(price);
   };
 
-  // ... (ส่วน return JSX เหมือนเดิม ไม่ต้องแก้)
+  // Format date
+  const formatDateRange = (start?: string, end?: string): string => {
+    if (!start || !end) return "N/A"; // fallback if missing
+
+    const options: Intl.DateTimeFormatOptions = {
+      month: "short",
+      day: "numeric",
+    };
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    const startStr = startDate.toLocaleDateString("en-US", options);
+    const endStr = endDate.toLocaleDateString("en-US", options);
+
+    return `${startStr} - ${endStr}`;
+  };
 
   if (loading) {
     return (
@@ -464,13 +479,13 @@ export default function AdminPage() {
             {rooms.map((room, index) => (
               <div
                 key={room.bookingId || `room-${index}`}
-                className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-amber-100 hover:shadow-xl transition-all duration-300"
+                className="bg-white/90  overflow-hidden hover:shadow-xl transition-all duration-300"
               >
                 <div className="relative h-48">
                   <img
                     src={getRoomImage(room.roomType)}
                     alt={room.roomType}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-2xl"
                   />
                   <div className="absolute top-3 right-3">
                     <span
@@ -486,14 +501,20 @@ export default function AdminPage() {
                 <div className="p-5 ">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800">
-                        {room.roomType} Room
-                      </h3>
-                      <p className="text-sm text-amber-600 font-medium">
-                        #{room.roomNumber}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-bold text-gray-800">
+                          {room.roomType} Room
+                        </h3>
+                        <p className="text-sm text-amber-600 font-bold">
+                          #{room.roomNumber}
+                        </p>
+                      </div>
+                      <div className="flex space-y-1 gap-1 text-gray-500 text-sm">
+                        <p>{formatDateRange(room.checkIn, room.checkOut)}</p>
+                        <p>| Guest : {room.guests}</p>
+                      </div>
                       <div className="flex">
-                        <p className="text-sm text-amber-600 pr-1">User</p>
+                        <p className="text-sm text-amber-600 pr-1">Booked By</p>
                         <span className="text-sm text-emerald-400 font-extrabold">
                           {room.username}
                         </span>
