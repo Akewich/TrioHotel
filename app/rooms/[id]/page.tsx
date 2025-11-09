@@ -536,7 +536,7 @@ export default function RoomDetailPage() {
     setIsBooking(true);
 
     try {
-      const totalGuests = (room.adults || 0) + (room.children || 0);
+      const totalGuests = localAdults + localChildren; // ✅ Use local state
       const bookingData = {
         email: session.user.email,
         roomNumber: room.roomNumber,
@@ -658,7 +658,7 @@ export default function RoomDetailPage() {
 
             {isModalOpen && (
               <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 items-center justify-center p-4 md:p-8 overflow-y-auto"
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto"
                 onClick={() => {
                   setIsModalOpen(false);
                   setIsSecondModal(false);
@@ -707,10 +707,10 @@ export default function RoomDetailPage() {
                           Guests
                         </h3>
                         <span className="font-medium pl-3 text-[#333333]">
-                          {room.adults} adult{room.adults !== 1 ? "s" : ""}
-                          {room.children
-                            ? `, ${room.children} child${
-                                room.children !== 1 ? "ren" : ""
+                          {localAdults} adult{localAdults !== 1 ? "s" : ""}
+                          {localChildren
+                            ? `, ${localChildren} child${
+                                localChildren !== 1 ? "ren" : ""
                               }`
                             : ""}
                         </span>
